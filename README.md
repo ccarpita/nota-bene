@@ -11,6 +11,7 @@ NB uses a simple convention: notes are stored in flat namespace, and the filenam
 Available as a [bpkg](http://www.bpkg.io/)
 ```sh
 bpkg install ccarpita/nota-bene
+# Caveat: installs in ~/.bpkg/bin by default, install with PREFIX=/usr to install globally
 ```
 
 # Usage
@@ -43,9 +44,9 @@ source `which nb`
 ------------------------------------------
 | Variable | Default Value | Description |
 | -------- | ------------- | ----------- |
-| `EDITOR` | `vim` | Default note editor to use |
-| `NB_DIR` | `$HOME/notes` | The directory where your notes will be stored.  Pro tip: symlink this into your Dropbox for cloud sync |
-| `NB_DEFAULT_EXT` | `md`  | The default extension given to your notes.  Markdown is the preferred, but you can use `txt` if you prefer |
+| EDITOR | vim | Default note editor to use |
+| NB_DIR | $HOME/notes | The directory where your notes will be stored.  Pro tip: symlink this into your Dropbox for cloud sync |
+| NB_DEFAULT_EXT | md  | The default extension given to your notes.  Markdown is the preferred, but you can use `txt` if you prefer |
 ------------------------------------------
 
 # TODO
