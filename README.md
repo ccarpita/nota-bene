@@ -19,7 +19,7 @@ bpkg install ccarpita/nota-bene
 Edit or start a new note
 
 ```sh
-nb note-label
+nb <note-label>
 # Uses EDITOR (default: vim) for note taking
 ```
 
