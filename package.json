@@ -1,0 +1,9 @@
+{
+  "name": "nota-bene",
+  "version": "0.0.1",
+  "description": "Simple shell-based note-taking application providing Evernote-like functionality",
+  "global": "1",
+  "install": "install -b nb.sh ${PREFIX:-~/.bpkg}/bin/nb",
+  "scripts": [ "nb.sh" ]
+}
+
