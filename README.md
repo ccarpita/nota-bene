@@ -41,13 +41,13 @@ source `which nb`
 
 # Environmental Variables
 
-------------------------------------------
 | Variable | Default Value | Description |
-| -------- | ------------- | ----------- |
-| EDITOR | vim | Default note editor to use |
-| NB_DIR | $HOME/notes | The directory where your notes will be stored.  Pro tip: symlink this into your Dropbox for cloud sync |
-| NB_DEFAULT_EXT | md  | The default extension given to your notes.  Markdown is the preferred, but you can use `txt` if you prefer |
-------------------------------------------
+| :------- | :------------ | :---------- |
+| `EDITOR` | `vim` | Default note editor to use |
+| `NB_DIR` | `$HOME/notes` | The directory where your notes will be stored.  Pro tip: symlink this into your Dropbox for cloud sync |
+| `NB_DEFAULT_EXT` | `md`  | The default extension given to your notes.  Markdown is the preferred format. |
+| `NB_PUB_DIR` | `$HOME/pub` |  Directory of git repo where your notes can be published |
+| `NB_PUB_BRANCH` | `public` | Name of main branch to use in your public repo.  A value other than `master` was chosen as the default so that your notes are not indexed by search engines on Github |
 
 # TODO
 
