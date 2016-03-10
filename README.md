@@ -6,12 +6,14 @@ Why use a fancy thick client application to take notes when you're already in th
 
 NB uses a simple convention: notes are stored in flat namespace, and the filename of the note is the label.  Using the power of the shell, you can list, search, and even encrypt notes (TBD).  By symlinking your note directory into a sync service folder (such as Dropbox) you can get all the benefit of free cloud storage and mobile access.
 
-# Install
+# Installation
 
-Available as a [bpkg](http://www.bpkg.io/)
 ```sh
-bpkg install ccarpita/nota-bene
-# Caveat: installs in ~/.bpkg/bin by default, install with PREFIX=/usr to install globally
+# The directory of DESTFILE should be in your PATH variable:
+DESTFILE=$HOME/bin/nb curl -s -o "$DESTFILE" https://raw.githubusercontent.com/ccarpita/nota-bene/master/nb.sh && chmod 755 "$DESTFILE"
+
+# For shell completion and shortcuts like nbls and nbgrep, add this to your .profile:
+eval "$(nb --env)"
 ```
 
 # Usage
@@ -52,6 +54,5 @@ source `which nb`
 # TODO
 
 * Setup GH issues
-* Support encryption
 * Automated testing
 

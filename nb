@@ -95,10 +95,10 @@ nb_decrypt () {
 
 nb_env () {
   echo "
-nbgrep () { nb --search "\$@" }
-nbls () { nb --list \"\$@\" }
-nbmove () { nb --move \"\$@\" }
-nbcat () { EDITOR=cat nb \"\$@\" }
+nbgrep () { nb --search \"\$@\"; }
+nbls () { nb --list \"\$@\"; }
+nbmove () { nb --move \"\$@\"; }
+nbcat () { EDITOR=cat nb \"\$@\"; }
 __nb_complete () {
   local cur=\${COMP_WORDS[COMP_CWORD]}
   COMPREPLY=( \$( compgen -W \"\$(nb --list)\" -- \$cur ) )
