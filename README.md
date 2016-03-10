@@ -10,7 +10,7 @@ NB uses a simple convention: notes are stored in flat namespace, and the filenam
 
 ```sh
 # The directory of DESTFILE should be in your PATH variable:
-DESTFILE=$HOME/bin/nb curl -s -o "$DESTFILE" https://raw.githubusercontent.com/ccarpita/nota-bene/master/nb.sh && chmod 755 "$DESTFILE"
+DESTFILE=$HOME/bin/nb; curl -s -o "$DESTFILE" https://raw.githubusercontent.com/ccarpita/nota-bene/master/nb && chmod 755 "$DESTFILE"
 
 # For shell completion and shortcuts like nbls and nbgrep, add this to your .profile:
 eval "$(nb --env)"
