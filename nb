@@ -2,16 +2,31 @@
 
 VERSION=0.0.1
 
-usage () {
+nb_usage () {
   echo "nb [-hV] [-e] [-sl] [name|query]"
   echo
   echo "Options:"
   echo "  -h|--help               Print this help dialogue and exit"
   echo "  -V|--version            Print the current version and exit"
+  echo "     --env                Print completion / function shortcuts for eval"
+  echo "  -e|--encrypt            Pass this flag to encrypt/decrypt notes with gpg"
   echo "  -l|--ls|--list [query]  List notes.  Optional query arg will filter list"
   echo "  -s|--search <query>     Search notes using query argument"
   echo "  -m|--move|-r|--rename  <name> <newname>  Rename note"
   echo "  -p|--publish <name>     Publish note."
+}
+
+nb_require () {
+  local dep=""
+  for dep in "$@"; do
+    if ! type "$dep" &>/dev/null; then
+      echo "required dependency not found: $dep" >&2
+      if type brew &>/dev/null; then
+        echo "hint: try 'brew install $dep'" >&2
+      fi
+      exit 1
+    fi
+  done
 }
 
 nb_move () {
@@ -63,6 +78,40 @@ nb_pub () {
   return 0
 }
 
+nb_encrypt () {
+  local srcfile="$1"
+  local encfile="$2"
+  local pass="$3"
+  echo "$pass" | gpg --batch --passphrase-fd 0 --no-tty --yes --symmetric --output "$encfile" "$srcfile"
+}
+
+nb_decrypt () {
+  local encfile="$1"
+  local destfile="$2"
+  local pass="$3"
+  echo "$pass" | gpg --batch --passphrase-fd 0 --no-tty --yes --output "$destfile" --decrypt "$encfile"
+}
+
+
+nb_env () {
+  echo "
+nbgrep () { nb --search \"\$@\"; }
+nbls () { nb --list \"\$@\"; }
+nbmove () { nb --move \"\$@\"; }
+nbcat () { EDITOR=cat nb \"\$@\"; }
+__nb_complete () {
+  local cur=\${COMP_WORDS[COMP_CWORD]}
+  COMPREPLY=( \$( compgen -W \"\$(nb --list)\" -- \$cur ) )
+  return 0
+}
+complete -o default -o nospace -F __nb_complete nb
+complete -o default -o nospace -F __nb_complete nbls
+complete -o default -o nospace -F __nb_complete nbgrep
+complete -o default -o nospace -F __nb_complete nbcat
+complete -o default -o nospace -F __nb_complete nbmove
+  "
+}
+
 nb () {
   local dir="${NB_DIR:-$HOME/notes}"
   if ! mkdir -p "$dir"; then
@@ -88,7 +137,11 @@ nb () {
         return 0
         ;;
       -h|--help)
-        usage
+        nb_usage
+        return 0
+        ;;
+      --env)
+        nb_env
         return 0
         ;;
       --list|--ls|-l)
@@ -101,7 +154,6 @@ nb () {
         grep_opt="$grep_opt -w"
         ;;
       --encrypt|-e)
-        echo "warning: encryption not yet supported" >&2
         encrypt=1
         ;;
       --move|-m|--rename|-r)
@@ -126,18 +178,21 @@ nb () {
     esac
   done
   if (( num_args == 0 )); then
-    usage
+    nb_usage
     return 1
   fi
 
   local notefile=""
   local rootname=${name%.*}
   local ext=${NOTE_EXT:-md}
+  if (( encrypt == 1 )); then
+    ext="gpg"
+  fi
   if [[ "$rootname" != "$name" ]]; then
     ext=${name##*.}
   fi
   if [[ -n "$rootname" ]]; then
-    for test_ext in 'txt' 'md'; do
+    for test_ext in 'txt' 'md' 'gpg'; do
       if [[ "$ext" != "$test_ext" ]] && [[ -f "$dir/$rootname.$test_ext" ]]; then
         ext="$test_ext"
         break
@@ -145,6 +200,11 @@ nb () {
     done
     notefile="$dir/$rootname.$ext"
   fi
+  if [[ "$ext" == "gpg" ]]; then
+    encrypt=1
+  fi
+
+  (( encrypt == 1 )) && nb_require gpg
 
   if (( move == 1 )); then
     nb_move "$ext" "$query" "$text"
@@ -156,7 +216,7 @@ nb () {
     query="$name"
     if [[ -z "$query" ]]; then
       echo "--search requires a query" >&2
-      usage
+      nb_usage
       return 1
     fi
     grep $grep_opt -i -R -C 1 "$query" "$dir"
@@ -165,63 +225,43 @@ nb () {
     for fname in $(ls -c "$dir" | grep "$query"); do
       echo "${fname%.*}"
     done
-  elif [[ -n "$text" ]]; then
-    if [[ -z "$notefile" ]]; then
-      echo "no notefile specified for append" >&2
-      note_usage
-      return 1
-    fi
-    echo "$text" >> "$notefile"
-    echo "Appended text to end of $notefile:"
-    tail -n 5 "$notefile"
   else
     if [[ -z "$notefile" ]]; then
-      echo "no notefile specified for editing" >&2
-      note_usage
+      echo "no notefile specified for edit/append" >&2
+      nb_usage
       return 1
     fi
-    ${EDITOR:-vim} "$notefile"
+    local tmpfile=""
+    local editfile="$notefile"
+    local pass=""
+    if (( encrypt == 1 )); then
+      echo -n "Enter your password for encryption: "
+      read -s pass
+      tmpfile=$(mktemp)
+      if [[ -f "$notefile" ]]; then
+        if ! nb_decrypt "$notefile" "$tmpfile" "$pass"; then
+          echo "Error: notefile could not be decrypted" >&2
+          return $?
+        fi
+      fi
+      editfile="$tmpfile"
+    fi
+
+    if [[ -n "$text" ]]; then
+      echo "$text" >> "$editfile"
+      echo "Appended text to end of $notefile:"
+      tail -n 5 "$notefile"
+    else
+      ${EDITOR:-vim} "$editfile"
+    fi
+
+    if (( encrypt == 1 )); then
+      if ! ( nb_encrypt "$editfile" "$notefile" "$pass" && rm "$editfile" ); then
+        echo "warning: encryption failed, editfile not removed: $editfile" >&2
+      fi
+    fi
   fi
 }
 
-nbgrep () {
-  nb --search "$@"
-}
 
-nbls () {
-  nb --list "$@"
-}
-
-nbmove () {
-  nb --move "$@"
-}
-
-nbcat () {
-  EDITOR=cat nb "$@"
-}
-
-__nb_complete () {
-  local cur=${COMP_WORDS[COMP_CWORD]}
-  COMPREPLY=( $( compgen -W "$(nb --list)" -- $cur ) )
-  return 0
-}
-
-setup () {
-  complete -o default -o nospace -F __note_complete nb
-  complete -o default -o nospace -F __note_complete nbls
-  complete -o default -o nospace -F __note_complete nbgrep
-  complete -o default -o nospace -F __note_complete nbcat
-  complete -o default -o nospace -F __note_complete nbmove
-  export -f nb
-  export -f nbls
-  export -f nbgrep
-  export -f nbmove
-  export -f nbcat
-}
-
-if [[ ${BASH_SOURCE[0]} != $0 ]]; then
-  setup
-else
-  nb "${@}"
-  exit 0
-fi
+nb "${@}"
