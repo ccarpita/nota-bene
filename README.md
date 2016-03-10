@@ -50,9 +50,3 @@ source `which nb`
 | `NB_DEFAULT_EXT` | `md`  | The default extension given to your notes.  Markdown is the preferred format. |
 | `NB_PUB_DIR` | `$HOME/pub` |  Directory of git repo where your notes can be published |
 | `NB_PUB_BRANCH` | `public` | Name of main branch to use in your public repo.  A value other than `master` was chosen as the default so that your notes are not indexed by search engines on Github |
-
-# TODO
-
-* Setup GH issues
-* Automated testing
-
